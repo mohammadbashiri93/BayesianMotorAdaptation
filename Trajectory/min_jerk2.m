@@ -13,7 +13,7 @@ targetPos = [0, 8];
 
 % simulation params
 t = 0;
-dt = 0.1;    % [s]  -> step size
+dt = 0.05;    % [s]  -> step size
 t_f = 5; % [s]
 N = t_f/dt; 
 
