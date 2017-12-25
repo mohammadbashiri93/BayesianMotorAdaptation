@@ -1,107 +1,94 @@
-%% We'll start by simulating a point mass in 2D and apply a force on it and see the trajectory
-%%%%%%%%%%%%%%%%%%%%%% Minimum Jerk Method %%%%%%%%%%%%%%%%%%%%%%%
-% Two problems left: the task needs to be completed in the given time
-% (modify force accordingly)
-% make it adaptable to different force fields
-%Solution: Implement the min jerk method. It automatically includes the
-%restoring force. However, with perturbation, I would have to introduce
-%deviation in position
+% Offline jerk with normalisation
+% Can be converted to online (Page 6, Shadmeyer tutorial)
+
+
+clc;
+clear all;
 
 
 % NOTE: everthing is represented in rows -> [x, y]
-
-% define mass ad force
-m  = 0.250;          % [kg] -> average mass of the hand
-% f  = [0, 0.01];   % [N]  -> force applied on the hand
-
-
-% force field
-angle = 90;
-type = 'NULL'; % 'FORCEFIELD'
 
 % Position Information
 startPos  = [0, 0];
 targetPos = [0, 8];
 
-% forces
-f_goal        = [0 0];
-f_hand        = [0 0];
-f_forcefield  = [0 0];
-f             = [0 0];
 
 % simulation params
-dt     = 0.1;    % [s]  -> step size
-t_f = 50; % [s]
-N      = t_f/dt; 
+t = 0;
+dt = 0.1;    % [s]  -> step size
+t_f = 5; % [s]
+N = t_f/dt; 
+
+r_list = zeros(N-1,2);
+r1_list =zeros(N-1,2);
+r2_list =zeros(N-1,2);
+tau_list = zeros(N-1,1);
 
 r  = startPos; % initial position
 v  = [0, 0]; % initial speed
 
-r_past = 0;
-r1_past = 0;
+r1_init = [0 0];
+r2_init = [0 0];
+
+
+r_past = [0 0];
+r1_past = [0 0];
+r1 = [0 0];
+r = [0 0];
+r2 = [0 0];
+
+
 
 % here is were the loop should be implemented
 figure; grid; hold on
 
-for i = 1:N
+for i = 1:N-1
 
-    % compute total force applied on the hand    
-    f_goal  = abs(r - startPos).* (targetPos - r) .* 0.01; % must be goal-dependent (HOW DO I CALCULATE THIS?)
-    % if we keep it the above way, force would be max when most far from
-    % the target. I does not happen like this in real experiments
-    
-    if (i==1)
-        f_goal = (targetPos - r) .* 0.01;
-    end
-    
-    f_adapt = -1 .* f_forcefield;
-    f_hand  = f_adapt + f_goal; 
-    f       = f_hand + f_forcefield;  % This is the net force influencing the motion
-
-    % I think we need to map the force directly to velocity
-    v = f *10;
-    
     % Implementation of minimum jerk methof
-    D =  t_f - t;
-    tau = t/D;
-    
-    r1 = (r - r_past)/dt;
-    r2 = (r1 - r1_past)/dt;
-    
-    q = [r r1 r2]; % 2x3
+    D =  t_f;
+    tau = t/D;  % we are applying it every step, so the difference is dt
+     
+    % some extra parameters which might be of interest
+    q = [r' r1' r2']; % 2x3
     A = [0 0 -60/D^3; 1 0 -36/D^2; 0 1 -9/D]; % 3x3
     B = [0 0 60/D^3]; % 1x3
     B = repmat(B,2,1); %2x3
+    q1 = q * A + B.* repmat(targetPos',1,3);  % q1 =[r1', r2', r3']   2x3
     
-    a0 = r;
-    a1 = D.*r1;
-    a2 = D.*r2/2;
-    a3 = (-(3*D^2)/2)*r - 6*D*r1 + 10*(target_pos - r);
-    a4 = ((3*D^2)/2)*r + 8*D*r1 - 15*(target_pos - r);
-    a5 = (-(D^2)/2)*r - 3*D*r1 + 6*(target_pos - r);
+    a0 = startPos;
+    a1 = D.*r1_init;
+    a2 = D.*r2_init/2;
+    a3 = (-(3*D^2)/2)*r2_init - 6*D*r1_init + 10*(targetPos - startPos);
+    a4 = ((3*D^2)/2)*r2_init + 8*D*r1_init - 15*(targetPos - startPos);
+    a5 = (-(D^2)/2)*r2_init - 3*D*r1_init + 6*(targetPos - startPos);
     
+    a = [a0' a1' a2' a3' a4' a5']; %2x6
     
-    q1 = q * A + B.* repmat(r',1,3);  % repmat has to be used. See the paper
-
-        
+    taus = [1; tau; tau^2; tau^3; tau^4; tau^5]; % 6x1
     
     % update position
-    r = r + v.*dt; % + 0.5.*a.*dt^2;
+    r = a*taus;
+    r = r';
     
+    %r1 = [q1(1,1) q1(2,1)]; % this is the one used in this step
+    %r2 = [q1(1,2) q1(2,2)]; % this is the one used in this step
+    
+    r1 = (r - r_past)/dt;
+    r2 = (r1 - r1_past)/dt;
+       
     % draw the trajectory
     scatter(r(1), r(2), '.'); xlim([-20,20]); ylim([-20,20]);
     % draw the start and target points
     scatter(startPos(1), startPos(2), 'filled', 'k');
-    scatter(targetPos(1), targetPos(2), 'filled', 'r');
-    % draw the force direction
-    quiver(r(1), r(2), f_forcefield(1), f_forcefield(2),9);
-      
-    if mod(i,30)==0
-        f_forcefield = 0.07 .* rotateMat(v, angle); %(rand(1,2)-0.5)./10
-    end
+    scatter(targetPos(1), targetPos(2), 'filled', 'r');     
 
     r_past = r;
     r1_past = r1;
+    r_list(i,:) = r;
+    r1_list(i,:) = r1;
+    r2_list(i,:) = r2;
+    tau_list(i) = tau;
+    t =  t +dt;
     
     pause(0.001)
 end
