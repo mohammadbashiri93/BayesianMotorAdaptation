@@ -10,13 +10,14 @@ clear all;
 
 % Position Information
 startPos  = [0, 0];
+r_i = startPos;
 targetPos = [0, 8];
-
+r_f = targetPos;
 
 % simulation params
 t = 0;
-dt = 0.1;    % [s]  -> step size
-t_f = 5; % [s]
+dt = 0.01;    % [s]  -> step size
+t_f = 1; % [s]
 N = t_f/dt; 
 
 r_list = zeros(N-1,2);
@@ -25,19 +26,19 @@ r2_list =zeros(N-1,2);
 tau_list = zeros(N-1,1);
 
 r  = startPos; % initial position
-v  = [0, 0]; % initial speed
+v  = [+0.0, 0.0]; % initial speed
 
-r1_init = [0 0];
-r2_init = [0 0];
+r1_init = [2.2 0.0];
+r2_init = [20.0 0.0];
 
 
 r_past = [0 0];
-r1_past = [0 0];
-r1 = [0 0];
+r1_past = [2.2 0.0];
+r1 = [2.2 0.0];
 r = [0 0];
-r2 = [0 0];
+r2 = [20.0 0.0];
 
-
+t = dt;
 
 % here is were the loop should be implemented
 figure; grid; hold on
@@ -57,10 +58,26 @@ for i = 1:N-1
     
     a0 = startPos;
     a1 = D.*r1_init;
-    a2 = D.*r2_init/2;
-    a3 = (-(3*D^2)/2)*r2_init - 6*D*r1_init + 10*(targetPos - startPos);
-    a4 = ((3*D^2)/2)*r2_init + 8*D*r1_init - 15*(targetPos - startPos);
-    a5 = (-(D^2)/2)*r2_init - 3*D*r1_init + 6*(targetPos - startPos);
+    a2 = D.*r2_init./2;
+    a3 = (-(3*D^2)/2).*r2_init - 6*D.*r1_init + 10.*(targetPos - startPos);
+    a4 = ((3*D^2)/2).*r2_init + 8*D.*r1_init - 15.*(targetPos - startPos);
+    a5 = (-(D^2)/2).*r2_init - 3*D.*r1_init + 6.*(targetPos - startPos);
+     
+%     T = t_f;
+%     tau = t; %dt;  % we are applying it every step, so the difference is dt
+%     
+%     % perturbation addition 
+%     T_mat = [T^3 T^4 T^5; 3*T^2 4*T^3 5*T^4; 6*T 12*T^2 20*T^3]; %3x3
+%     B = [(r_f-r_i-r1_init*T-(r2_init/2)*T^2); (-r1_init-r2_init*T); -r2_init]; % 3x2   I have to feed current state values
+%     A = T_mat\B; %3x2
+%       
+%     a0 = r_i;
+%     a1 = r1_init;
+%     a2 = r2_init/2;
+%     a3 = A(1,:);
+%     a4 = A(2,:);
+%     a5 = A(3,:);
+%     
     
     a = [a0' a1' a2' a3' a4' a5']; %2x6
     
@@ -92,3 +109,28 @@ for i = 1:N-1
     
     pause(0.001)
 end
+
+
+figure;
+subplot(1,3,1);
+plot(r_list(:,1), r_list(:,2));
+subplot(1,3,2);
+plot(r1_list(:,1), r1_list(:,2));
+subplot(1,3,3);
+plot(r2_list(:,1), r2_list(:,2));
+
+figure;
+x = vecnorm(r1_list,2,2);  % velocity norm
+plot(x);
+hold on;
+y = r_list(:,2);% y component of position
+plot(y);
+hold on;
+z = r_list(:,1); % x component of position
+plot(z);
+hold on;
+zz = vecnorm(r2_list,2,2);
+plot(zz);
+
+
+
