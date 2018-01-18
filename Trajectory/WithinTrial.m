@@ -142,7 +142,7 @@ for i = 1:N
     v = f *10;
     
     % update position
-    r = r + v.*dt; % + 0.5.*a.*dt^2;
+    r = r + v.*dt + 0.5.*a.*dt^2;
     
     % draw the trajectory
     scatter(r(1), r(2), '.'); xlim([-20,20]); ylim([-20,20]);

@@ -20,12 +20,5 @@ F = reshape(F,length(x2),length(x1));
 % normalize (make it a probability distribution)
 F = F ./ sum(F(:));
 
-% surf(x1,x2,F);
-% caxis([min(F(:))-.5*range(F(:)),max(F(:))]);
-% axis([min(x1) max(x1) min(x2) max(x2)]);
-% xlabel(x1_label); ylabel(x2_label); zlabel(z_label);
-
 end
-
-%%
 
