@@ -11,10 +11,14 @@ currentStateY = Vy(indY);
 
 GF_mus = [currentStateX, currentStateY];
 
-[VX, VY] = meshgrid(Vx, Vy);
+%[VX, VY] = meshgrid(Vx, Vy); Incorrect (Pranshul)
+% Let's say dim(Vx) = m and dim(Vy) = n 
+[VY, VX] = meshgrid(Vy, Vx);  % m x n
 GF = mvnpdf([VX(:), VY(:)], GF_mus, GF_sigmas);
 
-GF = reshape(GF, length(Vy), length(Vx))';
+%1st argument should correspond to Vx, 2nd to Vy
+GF = reshape(GF, length(Vx), length(Vy)); % m x n 
+%GF = reshape(GF, length(Vy), length(Vx))'; % Incorrect (Pranshul)
 GF = GF/max(GF(:)); % normalization between 0 and 1
 
 end

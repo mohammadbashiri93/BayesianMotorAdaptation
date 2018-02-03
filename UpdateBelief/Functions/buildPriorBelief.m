@@ -12,10 +12,13 @@ Fy_sigmas = squeeze(priorSpace(2, 2, indx, indy));
 F_mus = [Fx_mus, Fy_mus];
 F_sigmas = [Fx_sigmas 0;0 Fy_sigmas];
 
-[FX, FY] = meshgrid(Fx, Fy);
+% Let's say dim(Fx) = p and dim(Fy) = q
+[FX, FY] = meshgrid(Fx, Fy); % q x p
 
 priorBelief = mvnpdf([FX(:), FY(:)], F_mus, F_sigmas);
-priorBelief = reshape(priorBelief, length(Fy), length(Fx))';
+%priorBelief = reshape(priorBelief, length(Fy), length(Fx))'; Incorrect
+%(pramhul)
 
+priorBelief = reshape(priorBelief, length(Fy), length(Fx)); % q x p
 end
 

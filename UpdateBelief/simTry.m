@@ -1,10 +1,11 @@
 close all; clear all;
+addpath('C:\Users\user\Dropbox\Semester3\Computational Mechanisms of Learning\Project\Code\UpdateBelief\Functions')
 
 % initialize the global variables (mainly contains the biological aspects 
 % of the subject, except memory)
 InitGlobals()
 
-doGeneralization = false;
+doGeneralization = true;
 
 % We have some implicit memory saved! and we can retrieve that memory.
 % it can be based on textual cue!
@@ -54,7 +55,7 @@ saveVx = [];
 saveVy = [];
 
 
-% here is were the loop should be implemented
+% here is where the loop should be implemented
 figure(1);
 for trials = 1:400
     clf;
@@ -82,13 +83,11 @@ for trials = 1:400
                                                                       a(i-1,:), F_forcefield, F_adapt, dt);
         
         [indx, indy] = findStateInd(v_actual(i-1,:));                               
-        disp(sspace(:,2,indx, indy));
+        disp(sspace(:,2,indx, indy));  % displaying the mean of forces at the occured point in velocity space
                                                                   
-        % Update the implicit memory
-        sspace = UpdateBelief(sspace, v_actual(i-1,:), F_forcefield, doGeneralization);        
-        
-        
-        
+        % Update the implicit memory for the current velocity
+        F_forcefield = exp.compF(v_actual(i,:));
+        sspace = UpdateBelief(sspace, v_actual(i,:), F_forcefield, doGeneralization);        
         
 %         disp([Vx(indx), Vy(indy)]);
 %         sspace(:,1,indx, indy) = exp.compF(v_actual(i-1,:));
@@ -125,6 +124,7 @@ for trials = 1:400
 %     colorbar;
 
 end
+
 figure;
 sspace_image = showSpace(idealF, sspace);
 imagesc(Vy, Vx, sspace_image'); xlabel('V_x'); ylabel('V_y'); axis xy
