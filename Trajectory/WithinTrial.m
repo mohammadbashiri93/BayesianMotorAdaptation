@@ -61,7 +61,7 @@ for i = 1:N
     v = a.*dt + v;
     
     % update position
-    r = r + v.*dt + 0.5.*a.*dt^2;
+    r = r + v.*dt + 0.5.*a.*dt^2; % in principle, we should not have acceleration term here
     
     scatter(r(1), r(2)); xlim([-20,20]); ylim([-20,20]);
     
@@ -77,6 +77,13 @@ end
 %% Now we will add a target
 
 %% We'll start by simulating a point mass in 2D and apply a force on it and see the trajectory
+% Two problems left: the task needs to be completed in the given time
+% (modify force accordingly)
+% make it adaptable to different force fields
+%Solution: Implement the min jerk method. It automatically includes the
+%restoring force. However, with perturbation, I would have to introduce
+%deviation in position
+
 
 % NOTE: everthing is represented in rows -> [x, y]
 
@@ -113,16 +120,26 @@ figure; grid; hold on
 for i = 1:N
 
     % compute total force applied on the hand    
-    f_goal  =  (targetPos - r) .* 0.01; % must be goal-dependent (HOW DO I CALCULATE THIS?)
+    f_goal  = abs(r - startPos).* (targetPos - r) .* 0.01; % must be goal-dependent (HOW DO I CALCULATE THIS?)
+    % if we keep it the above way, force would be max when most far from
+    % the target. I does not happen like this in real experiments
+    
+    if (i==1)
+        f_goal = (targetPos - r) .* 0.01;
+    end
+    
     f_adapt = -1 .* f_forcefield;
     f_hand  = f_adapt + f_goal; 
-    f       = f_hand + f_forcefield;
+    f       = f_hand + f_forcefield;  % This is the net force influencing the motion
     
-    % calculate the acceleration
-    a = f./m;
+    % calculate the acceleration 
+    %a = f./m;  % can't be done. It's not an external system under observation
     
     % update velocity
-    v = a.*dt + v;
+    %v = a.*dt + v;  % not correct
+    
+    % I think we need to map the force directly to velocity
+    v = f *10;
     
     % update position
     r = r + v.*dt + 0.5.*a.*dt^2;
@@ -138,6 +155,6 @@ for i = 1:N
     if mod(i,30)==0
         f_forcefield = 0.07 .* rotateMat(v, angle); %(rand(1,2)-0.5)./10
     end
-    
+
     pause(0.001)
 end
