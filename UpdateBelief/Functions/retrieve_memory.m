@@ -15,7 +15,7 @@ Vsize = numel(Vx); % TODO: must come from Globals!!! DONE!
 
 memory(1).name    = 'null';
 memory(1).Fmus    = zeros(2, Vsize, Vsize);
-memory(1).Fsigmas = ones(2, Vsize, Vsize)*10;
+memory(1).Fsigmas = ones(2, Vsize, Vsize)*2^2;
 
 memory(2).name    = 'CW';
 memory(2).Fmus    = zeros(2, Vsize, Vsize);

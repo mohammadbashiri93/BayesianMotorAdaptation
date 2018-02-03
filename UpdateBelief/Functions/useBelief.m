@@ -17,12 +17,12 @@ function [ Fadapt ] = useBelief( currentState, sspace )
 
 % TODO: There is a need to implement some more code to deal with edge
 % cases here
-
 [indVx, indVy] = findStateInd(currentState);
 
 % The mu and sigma for the force distribution of current state
 mu    = [sspace(1,1,indVx, indVy) sspace(2,1,indVx, indVy)];
 sigma = [sspace(1,2,indVx, indVy) 0;0 sspace(2,2,indVx, indVy)];
+
 Fadapt = mvnrnd(mu,sigma);
 
 end

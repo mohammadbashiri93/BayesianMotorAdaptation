@@ -22,6 +22,10 @@ sspace = zeros(2, 2, Vsize, Vsize); % state space initialization
 sspace(:,1,:,:) = memory.Fmus; % memory retrieval
 sspace(:,2,:,:) = memory.Fsigmas; % memory retrieval
 
+
+% sspace = load('training1.mat');
+% sspace = sspace.sspace;
+
 % Compute ideal force field values for each state
 idealF = compIdealF(exp.compF); 
 
@@ -31,7 +35,7 @@ idealF = compIdealF(exp.compF);
 
 % Position Information - this is task dependent
 startPos  = [0, 0];
-targetPos = [-5, 10];
+targetPos = [0, 10];
 
 % simulation params
 dt     = 0.01;    % [s]  -> step size
@@ -45,12 +49,22 @@ v_actual  = zeros(N,2);
 a         = zeros(N,2); % initial acceleration
 a_actual  = zeros(N,2);
 
+
+saveVx = [];
+saveVy = [];
+
+
 % here is were the loop should be implemented
 figure(1);
-% for trials = 1:100;
-%     clf;
+for trials = 1:400
+    clf;
+    disp('Trial')
+    disp(trials)
+  
     for i = 2:N
 
+%         disp(i)
+        
         t = dt*i;
 
         % Minimizing total jerk
@@ -61,17 +75,23 @@ figure(1);
 
         % Use the implicit memory to compute the adaptation force
         F_adapt = -useBelief(v_actual(i-1,:), sspace);
-
+        
         % Update position, velocity and acceleration
         [r_actual(i,:), v_actual(i,:), a_actual(i,:)] = updateMinJerk(r(i-1,:), r_actual(i-1,:),...
                                                                       v(i-1,:), v_actual(i-1,:),...
                                                                       a(i-1,:), F_forcefield, F_adapt, dt);
-
+        
+        [indx, indy] = findStateInd(v_actual(i-1,:));                               
+        disp(sspace(:,2,indx, indy));
+                                                                  
         % Update the implicit memory
-%         sspace = UpdateBelief(sspace, v_actual(i-1,:), F_forcefield, doGeneralization);
-        [indx, indy] = findStateInd( v_actual(i-1,:));
-        disp([indx, indy])
-        sspace(:,1,indx, indy) = exp.compF(v_actual(i-1,:));
+        sspace = UpdateBelief(sspace, v_actual(i-1,:), F_forcefield, doGeneralization);        
+        
+        
+        
+        
+%         disp([Vx(indx), Vy(indy)]);
+%         sspace(:,1,indx, indy) = exp.compF(v_actual(i-1,:));
         % Display the update amount in the states
 %         subplot(122); grid;
 
@@ -79,26 +99,36 @@ figure(1);
 %         imagesc(Vy, Vx, sspace_image); xlabel('V_x'); ylabel('V_y'); axis xy
 %         colorbar;
 
-%         % Display the trajectory - velocity
-%         subplot(122); grid; hold on;
-%         sc5atter(v_actual(i-1,1), v_actual(i-1,2), 'o'); xlim([-15,15]); ylim([-15,15]);
-% 
-%         % Display the trajectory - position
-%         subplot(121); grid; hold on;
-%         scatter(r_actual(i,1), r_actual(i,2), 'o'); xlim([-10,10]); ylim([-5,15]);
-%         % draw the start and target points
-%         scatter(startPos(1), startPos(2), 'filled', 'k');
-%         scatter(targetPos(1), targetPos(2), 'filled', 'r'); 
+        % Display the trajectory - velocity
+        subplot(122); grid; hold on;
+        scatter(v_actual(i-1,1), v_actual(i-1,2), 'o'); xlim([-15,15]); ylim([-50,50]);
+
+        % Display the trajectory - position
+        subplot(121); grid; hold on;
+        scatter(r_actual(i,1), r_actual(i,2), 'o'); xlim([-10,10]); ylim([-5,15]);
+        % draw the start and target points
+        scatter(startPos(1), startPos(2), 'filled', 'k');
+        scatter(targetPos(1), targetPos(2), 'filled', 'r'); 
 % 
         drawnow;
         pause(0.01)
-    end
-    figure;
-    sspace_image = showSpace(idealF, sspace);
-    imagesc(Vy, Vx, sspace_image'); xlabel('V_x'); ylabel('V_y'); axis xy
-    colorbar;
+        
+        saveVx = [saveVx v_actual(i-1,1)];
+        saveVy = [saveVy v_actual(i-1,2)];
 
-% end
+        
+    end
+    
+%     figure;
+%     sspace_image = showSpace(idealF, sspace);
+%     imagesc(Vy, Vx, sspace_image'); xlabel('V_x'); ylabel('V_y'); axis xy
+%     colorbar;
+
+end
+figure;
+sspace_image = showSpace(idealF, sspace);
+imagesc(Vy, Vx, sspace_image'); xlabel('V_x'); ylabel('V_y'); axis xy
+colorbar;
 
 
 figure;

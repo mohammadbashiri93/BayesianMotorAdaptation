@@ -12,7 +12,7 @@ function [ indVx, indVy ] = findStateInd( currentState )
 global Vx;
 global Vy;
 
-n = 1; % number of decimal points
+n = 0; % number of decimal points
 
 valVx = currentState(1);
 valVy = currentState(2);
